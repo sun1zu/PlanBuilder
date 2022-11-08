@@ -6,21 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/libs/opencv-460.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <NATIVE>
-          <root url="file://$MODULE_DIR$/libs/opencv-native/x64" />
-        </NATIVE>
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/libs/opencv-460.jar!/" />
-          <root url="jar://$MODULE_DIR$/libs/opencv-460.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="opencv-460" level="project" />
   </component>
 </module>

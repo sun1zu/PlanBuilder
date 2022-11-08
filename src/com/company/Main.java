@@ -24,7 +24,8 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         System.loadLibrary("opencv_java460");
-        circleVertexes();
+
+        run();
     }
 
     private static void run() throws IOException {
