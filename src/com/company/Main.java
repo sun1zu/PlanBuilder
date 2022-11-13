@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
+    private static int maxCorners = 2000;
     private static BufferedImage contrasted;
     private static BufferedImage source;
     private static BufferedImage clear;
@@ -115,61 +116,27 @@ public class Main {
         circleVertexes();
     }
 
-    private static void circleVertexes() throws IOException {   //TODO: make a point on each vertex on the contour
-        //Finding vertexes!
-        //Loading the image
-        //Non-working method to convert the BufferedImage to Mat
-//        try {
-//            original = BufferedImage2Mat(clear);
-//        } catch (IOException e){
-//            e.printStackTrace();
-//        }
-
+    private static void circleVertexes() throws IOException {
         original = Imgcodecs.imread(clearFile.getPath());    //Converting image to mat
+        maxCorners = Math.max(maxCorners, 1);
 
-        Mat originalGray = new Mat();
-        Imgproc.cvtColor(original, originalGray, Imgproc.COLOR_BGR2GRAY);
-
-        //Threshold the image
-        Mat threshold = new Mat();
-        Imgproc.threshold(original, threshold, 127, 125, 1);
-
-        //Canny
-        Mat cannyOutput = new Mat();
-        Imgproc.Canny(originalGray, cannyOutput, 100, 200);     //Canny - edge-detection algorithm
-
-        //Find the contours
-        List<MatOfPoint> contours = new ArrayList<>();
-        Mat hierarchy = new Mat();
-//        Imgproc.findContours(threshold, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);   //old method to find contours
-        Imgproc.findContours(cannyOutput, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-
-        //Drawing contours on the image
-        Mat contourImg = new Mat();
-        for(int i=0; i < contours.size(); i++){
-            Imgproc.drawContours(contourImg, contours, i, new Scalar(255, 255, 255), -1);
-        }
-
-        // Get contour index with largest area
-        double max_area = -1;
-        int index = 0;
-        for(int i=0; i< contours.size();i++) {
-            if (Imgproc.contourArea(contours.get(i)) > max_area) {
-                max_area = Imgproc.contourArea(contours.get(i));
-                index = i;
-            }
-        }
-
-        // Approximate the largest contour
-        MatOfPoint2f approxCurve = new MatOfPoint2f();
-        MatOfPoint2f oriCurve = new MatOfPoint2f( contours.get(index).toArray() );
-        Imgproc.approxPolyDP(oriCurve, approxCurve, 6.0, true);
-
-        // Draw contour points on the original image
-        Point[] array = approxCurve.toArray();
-        for(int i=0; i < array.length;i++) {
-            Imgproc.circle(original, array[i], 2, new Scalar(0, 0 ,255), 5);
-            System.out.println("Point " + i);
+        MatOfPoint corners = new MatOfPoint();
+        double qualityLevel = 0.01;
+        double minDistance = 10;
+        int blockSize = 7, gradientSize = 3;
+        boolean useHarrisDetector = false;
+        double k = 0.04;
+        Mat srcGray = new Mat();
+        Imgproc.cvtColor(original, srcGray, Imgproc.COLOR_BGR2GRAY);
+        Imgproc.goodFeaturesToTrack(srcGray, corners, maxCorners, qualityLevel, minDistance, new Mat(),
+                blockSize, gradientSize, useHarrisDetector, k);
+        System.out.println("** Number of corners detected: " + corners.rows());
+        int[] cornersData = new int[(int) (corners.total() * corners.channels())];
+        corners.get(0, 0, cornersData);
+        int radius = 2;
+        for (int i = 0; i < corners.rows(); i++) {
+            Imgproc.circle(original, new Point(cornersData[i * 2], cornersData[i * 2 + 1]), radius,
+                    new Scalar(0, 0, 255), Core.FILLED);
         }
 
         File debugImage = new File("debug-image.png");
@@ -178,7 +145,7 @@ public class Main {
 
 
 
-    private static int numColocatedPixelsByColor(int x, int y, Color color){    //метод, который выдает количество пикселей заданного цвета вокруг пикселя на изображени по его координатам
+    private static int numColocatedPixelsByColor(int x, int y, Color color){    //алгоритм фильтрации изображения от шумов
         if(!(x<1||y<1||x>contrasted.getWidth()-2||y> contrasted.getHeight()-2)) {
             int counter = 0;
             int xLocal = -1;
